@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customize Your Order | CIAO PIZZERIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #fbc531; --dark: #1a1a1a; --red: #e74c3c; --green: #2ecc71; --white: #ffffff; --gray: #f4f4f4; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--gray); color: var(--dark); padding-bottom: 50px; }
+
+        /* SAME NAVIGATION AS MENU */
+        nav {
+            background: var(--dark); padding: 15px 8%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        nav h1 { font-family: 'Playfair Display'; color: var(--gold); font-size: 2rem; }
+        .nav-links a { color: white; text-decoration: none; margin-left: 20px; font-weight: 500; }
+        .cart-btn { background: var(--gold); color: var(--dark) !important; padding: 8px 18px; border-radius: 8px; font-weight: 700; text-decoration: none; }
+        .cart-badge { background: var(--red); color: white; padding: 2px 6px; border-radius: 50%; font-size: 10px; }
+
+        /* Customization Page Content */
+        .container { max-width: 800px; margin: 30px auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .item-info { text-align: center; margin-bottom: 30px; border-bottom: 2px solid var(--gray); padding-bottom: 20px; }
+        .item-info h2 { font-family: 'Playfair Display'; font-size: 2.2rem; }
+        .base-price { color: var(--red); font-weight: 700; font-size: 1.2rem; }
+
+        .section { margin-bottom: 25px; }
+        .section-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 15px; display: block; border-left: 4px solid var(--gold); padding-left: 10px; }
+        
+        /* ADJUSTED: Grid now adapts to smaller screens */
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+        
+        .option-card {
+            border: 2px solid #eee; padding: 12px; border-radius: 12px; cursor: pointer;
+            text-align: center; transition: 0.3s; position: relative;
+        }
+        .option-card input { position: absolute; opacity: 0; }
+        .option-card.selected { border-color: var(--gold); background: rgba(251, 197, 49, 0.1); }
+        
+        /* Quantity & Footer */
+        .quantity-wrapper { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 30px 0; }
+        .qty-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: var(--dark); color: white; cursor: pointer; font-size: 1.2rem; }
+        #qty-val { font-size: 1.5rem; font-weight: 700; }
+        .total-display { font-size: 1.6rem; font-weight: 700; text-align: center; margin-bottom: 15px; }
+        .confirm-btn { background: var(--gold); color: var(--dark); border: none; padding: 15px; border-radius: 50px; font-weight: 700; width: 100%; cursor: pointer; font-size: 1.1rem; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; }
+        .modal { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .m-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
+        .btn-cart { background: var(--green); color: white; }
+
+        /* ADDED: RESPONSIVE QUERIES */
+        @media (max-width: 768px) {
+            nav { padding: 15px 5%; }
+            nav h1 { font-size: 1.5rem; }
+            .nav-links a { font-size: 0.8rem; margin-left: 10px; }
+            .container { margin: 15px; padding: 20px; }
+            .item-info h2 { font-size: 1.8rem; }
+            .options-grid { grid-template-columns: repeat(2, 1fr); } /* 2 cards per row on mobile */
+        }
+
+        @media (max-width: 400px) {
+            .options-grid { grid-template-columns: 1fr; } /* 1 card per row on very small screens */
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <h1>CIAO PIZZERIA</h1>
+    <div class="nav-links">
+        <a href="#">Hi, {{ user_name }}</a>
+        <a href="/cart_page" class="cart-btn">🛒 Cart <span class="cart-badge" id="cart-num">{{ cart_count }}</span></a>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="item-info">
+        <h2 id="display-name">{{ name }}</h2>
+        <p class="base-price">Base Price: ₹<span id="display-price">{{ price }}</span></p>
+    </div>
+
+    <div id="custom-options"></div>
+
+    <div class="quantity-wrapper">
+        <button class="qty-btn" onclick="updateQty(-1)">-</button>
+        <span id="qty-val">1</span>
+        <button class="qty-btn" onclick="updateQty(1)">+</button>
+    </div>
+
+    <div class="total-display">Total: ₹<span id="total-price">0</span></div>
+    <button class="confirm-btn" onclick="showConfirm()">CONFIRM SELECTION</button>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h2>Ready to Eat?</h2>
+        <p>Your custom {{ name }} is ready to be added.</p>
+        <div class="modal-btns">
+            <button class="m-btn" onclick="closeModal()">CANCEL</button>
+            <button class="m-btn btn-cart" onclick="finalAddToCart()">ADD TO CART</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const itemName = "{{ name }}";
+    const basePrice = parseInt("{{ price }}");
+    let currentQty = 1;
+    let extraCharges = 0;
+
+    const isPizza = itemName.toLowerCase().includes('pizza') || itemName.toLowerCase().includes('margherita') || itemName.toLowerCase().includes('peppy') || itemName.toLowerCase().includes('farmhouse')|| itemName.toLowerCase().includes('extravaganza')|| itemName.toLowerCase().includes('cheese margherita')|| itemName.toLowerCase().includes('mexican green wave')|| itemName.toLowerCase().includes('indi tandoori paneer')|| itemName.toLowerCase().includes('veggie paradise')|| itemName.toLowerCase().includes('paneer makhani')|| itemName.toLowerCase().includes('cheese n corn')|| itemName.toLowerCase().includes('achari do pyaza')|| itemName.toLowerCase().includes('veggie')|| itemName.toLowerCase().includes(' tango')|| itemName.toLowerCase().includes('capsicum pizza')|| itemName.toLowerCase().includes('golden corn pizza');
+    const isPasta = itemName.toLowerCase().includes('pasta') || itemName.toLowerCase().includes('mac');
+    const isBread = itemName.toLowerCase().includes('bread')|| itemName.toLowerCase().includes('paneer garlic bread');
+    const isDessert = itemName.toLowerCase().includes('lava') || itemName.toLowerCase().includes('brownie');
+    const isDrink = itemName.toLowerCase().includes('cola') || itemName.toLowerCase().includes('pepsi') || itemName.toLowerCase().includes('coffee') || itemName.toLowerCase().includes('tea');
+
+    function renderOptions() {
+        let html = '';
+        if (isPizza) {
+            html += createSection('Size', [{n:'Small', p:100}, {n:'Medium', p:150}, {n:'Large', p:250}], 'radio', 'size');
+            html += createSection('Cheese', [{n:'Mozzarella', p:40}, {n:'Cheddar', p:50}, {n:'Burrata', p:90}], 'checkbox', 'cheese');
+            html += createSection('Toppings', [{n:'Onion', p:20}, {n:'Tomato', p:20}, {n:'Paneer', p:50}], 'checkbox', 'topping');
+        } else if (isPasta) {
+            html += createSection('Shape', [{n:'Penne', p:30}, {n:'Spaghetti', p:40}, {n:'Ravioli', p:60}], 'radio', 'shape');
+            html += createSection('Sauce', [{n:'Marinara', p:45}, {n:'Alfredo', p:30}, {n:'Pesto', p:50}], 'radio', 'sauce');
+        } else if (isBread) {
+            html += createSection('Cheese', [{n:'No Cheese', p:0}, {n:'Mozzarella', p:40},{n:'Cheddar', p:50}, {n:'Burrata', p:90}], 'radio', 'cheese');
+        } else if (isDessert) {
+            html += createSection('Flavor', [{n:'Dark Chocolate', p:30}, {n:'White Chocolate', p:40}], 'radio', 'flavor');
+        } else if (isDrink) {
+            html += createSection('Options', [{n:'Normal Ice', p:35}, {n:'No Ice', p:0}], 'radio', 'ice');
+        }
+        document.getElementById('custom-options').innerHTML = html;
+        calculateTotal();
+    }
+
+    function createSection(title, options, type, group) {
+        let optHtml = `<div class="section"><span class="section-title">${title}</span><div class="options-grid">`;
+        options.forEach(opt => {
+            optHtml += `<label class="option-card" onclick="setTimeout(calculateTotal, 50)">
+                <input type="${type}" name="${group}" value="${opt.p}">
+                <span>${opt.n}</span><br><small>+₹${opt.p}</small></label>`;
+        });
+        return optHtml + `</div></div>`;
+    }
+
+    function calculateTotal() {
+        extraCharges = 0;
+        document.querySelectorAll('input:checked').forEach(input => {
+            extraCharges += parseInt(input.value);
+            input.parentElement.classList.add('selected');
+        });
+        document.querySelectorAll('.option-card').forEach(card => {
+            if(!card.querySelector('input').checked) card.classList.remove('selected');
+        });
+        document.getElementById('total-price').innerText = (basePrice + extraCharges) * currentQty;
+    }
+
+    function updateQty(val) {
+        currentQty = Math.max(1, currentQty + val);
+        document.getElementById('qty-val').innerText = currentQty;
+        calculateTotal();
+    }
+
+    function showConfirm() { document.getElementById('modalOverlay').style.display = 'flex'; }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+
+    function finalAddToCart() {
+        const finalPrice = (basePrice + extraCharges) * currentQty;
+        fetch('/add_to_cart', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name: itemName + " (Customized)", price: finalPrice })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('cart-num').innerText = data.count;
+            window.location.href = "/menu";
+        });
+    }
+
+    window.onload = renderOptions;
+</script>
+</body>
+</html>

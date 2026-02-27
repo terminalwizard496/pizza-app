@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIAO PIZZERIA | Menu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #fbc531; --dark: #1a1a1a; --red: #e74c3c; --green: #2ecc71; --white: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f4f4f4; color: var(--dark); overflow-x: hidden; width: 100%; }
+
+        /* NAVIGATION - Fixed for Mobile Overlap */
+        nav {
+            background: var(--dark); padding: 15px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            flex-wrap: wrap; /* Allows wrapping if text is too long */
+        }
+        nav h1 { font-family: 'Playfair Display'; color: var(--gold); font-size: 1.8rem; }
+        .nav-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; font-size: 0.85rem; }
+        .cart-btn { background: var(--gold); color: var(--dark) !important; padding: 6px 12px; border-radius: 8px; font-weight: 700; }
+        .cart-badge { background: var(--red); color: white; padding: 2px 6px; border-radius: 50%; font-size: 10px; margin-left: 4px; }
+
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1350&q=80');
+            background-size: cover; background-position: center;
+            height: 220px; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; text-align: center;
+            padding: 0 15px;
+        }
+        .hero h2 { font-family: 'Playfair Display'; font-size: 2.5rem; margin-bottom: 5px; }
+
+        /* CATEGORY BAR - Scrollable Fix */
+        .categories {
+            display: flex; justify-content: flex-start; padding: 15px; background: white; 
+            gap: 12px; position: sticky; top: 65px; z-index: 999; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .categories::-webkit-scrollbar { display: none; } /* Hide scrollbar for clean look */
+        .cat-btn {
+            padding: 10px 20px; border: 2px solid var(--gold); background: white;
+            border-radius: 50px; cursor: pointer; font-weight: 600; white-space: nowrap; transition: 0.3s;
+        }
+        .cat-btn.active { background: var(--gold); color: var(--dark); }
+
+        /* MENU GRID - Robust Responsive Fix */
+        .menu-container {
+            padding: 20px 5%; 
+            display: grid;
+            /* This line prevents items from hiding. If screen is < 280px, it stacks */
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px;
+            width: 100%;
+        }
+
+        .card {
+            background: white; border-radius: 20px; overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #eee;
+            display: flex; flex-direction: column;
+        }
+        .img-wrapper { height: 200px; width: 100%; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .card-body { padding: 20px; text-align: center; flex-grow: 1; }
+        .card-body h3 { font-family: 'Playfair Display'; font-size: 1.3rem; margin-bottom: 8px; }
+        .card-body p { color: #666; font-size: 0.85rem; margin-bottom: 15px; min-height: 40px; }
+        .price { font-size: 1.3rem; font-weight: 700; color: var(--red); margin-bottom: 15px; display: block; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn-group button { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .add-btn { background: var(--dark); color: white; }
+        .cust-btn { background: #f1f2f6; color: var(--dark); }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center;
+            align-items: center; z-index: 2000;
+        }
+        .modal {
+            background: white; padding: 30px; border-radius: 20px; text-align: center;
+            max-width: 400px; width: 90%; transform: scale(0.7); transition: 0.3s;
+        }
+        .modal.active { transform: scale(1); }
+
+        /* SMALL MOBILE ADJUSTMENTS */
+        @media (max-width: 500px) {
+            nav { justify-content: center; text-align: center; }
+            nav h1 { width: 100%; margin-bottom: 10px; }
+            .hero h2 { font-size: 1.8rem; }
+            .menu-container { 
+                grid-template-columns: 1fr; /* Strictly 1 column on phones to prevent hiding */
+                padding: 15px;
+            }
+            .img-wrapper { height: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal" id="successModal">
+        <div style="font-size: 50px; color: var(--green); margin-bottom: 15px;">✔</div>
+        <h2 id="modalTitle">Added!</h2>
+        <p id="modalMessage">Item added to cart.</p>
+        <button onclick="closeModal()" style="background: var(--dark); color: white; padding: 10px 30px; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px; width: 100%;">Great!</button>
+    </div>
+</div>
+
+<nav>
+    <h1>CIAO PIZZERIA</h1>
+    <div class="nav-links">
+        <a href="#">Hi, {{ user_name }}</a>
+        <a href="/cart_page" class="cart-btn">🛒 Cart <span class="cart-badge" id="cart-num">{{ cart_count }}</span></a>
+        <a href="/logout">Logout</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <h2>Gourmet Italian Kitchen</h2>
+    <p>Fresh Ingredients. Traditional Recipes.</p>
+</div>
+
+<div class="categories">
+    <button class="cat-btn active" onclick="filterMenu('pizza', this)">🍕 Pizzas</button>
+    <button class="cat-btn" onclick="filterMenu('pasta', this)">🍝 Pastas</button>
+    <button class="cat-btn" onclick="filterMenu('bread', this)">🥖 Garlic Bread</button>
+    <button class="cat-btn" onclick="filterMenu('dessert', this)">🍫 Choco Lava</button>
+    <button class="cat-btn" onclick="filterMenu('drink', this)">🥤 Drinks</button>
+</div>
+
+<div class="menu-container" id="menu-box"></div>
+
+<script>
+    const menuData = {
+        pizza: [
+            { name: "Classic Margherita", price: 299, desc: "Pure Mozzarella & Basil", img: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=500" },
+            { name: "Peppy Paneer", price: 399, desc: "Spiced Paneer, Capsicum, Red Pepper", img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500" },
+            { name: "Farmhouse", price: 449, desc: "Mushroom, Corn, Tomato & Onion", img: "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=500" },
+            { name: "Veg Extravaganza", price: 549, desc: "Black Olives, Capsicum, Corn, Jalapeno", img: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500" },
+            { name: "Double Cheese Margherita", price: 349, desc: "Loaded with extra Mozzarella", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500" },
+            { name: "Mexican Green Wave", price: 429, desc: "Onion, Capsicum, Tomato & Jalapeno", img: "https://images.unsplash.com/photo-1576458088443-04a19bb13da6?w=500" },
+            { name: "Indi Tandoori Paneer", price: 499, desc: "Tandoori paneer with coriander", img: "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500" },
+            { name: "Veggie Paradise", price: 450, desc: "Golden Corn, Black Olives, Capsicum", img: "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=500" },
+            { name: "Paneer Makhani", price: 479, desc: "Paneer with creamy makhani sauce", img: "https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500" },
+            { name: "Cheese n Corn", price: 349, desc: "Sweet Corn with Mozzarella", img: "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=500" },
+            { name: "Achari Do Pyaza", price: 369, desc: "Tangy achari flavor with onions", img: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500" },
+            { name: "Fresh Veggie", price: 329, desc: "Onion & Capsicum", img: "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500" },
+            { name: "Spicy Triple Tango", price: 389, desc: "Red Paprika, Jalapeno & Gherkins", img: "https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=500" },
+            { name: "Capsicum Pizza", price: 249, desc: "Fresh Green Capsicum", img: "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=500" },
+            { name: "Golden Corn Pizza", price: 249, desc: "Sweet Golden Corn", img: "https://images.unsplash.com/photo-1555072956-7758afb20e8f?w=500" }
+        ],
+        pasta: [
+            { name: "White Sauce Pasta", price: 299, desc: "Creamy Alfredo with herbs", img: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=500" },
+            { name: "Red Sauce Pasta", price: 279, desc: "Tangy Tomato Arabiata", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=500" },
+            { name: "Mix Sauce Pasta", price: 319, desc: "Pink sauce combo", img: "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?w=500" },
+            { name: "Mac n Cheese", price: 349, desc: "Extra cheesy American style", img: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?w=500" },
+            { name: "Pesto Pasta", price: 359, desc: "Rich Basil Pesto", img: "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=500" }
+        ],
+        bread: [
+            { name: "Garlic Breadsticks", price: 129, desc: "Baked with Garlic Butter", img: "https://images.unsplash.com/photo-1573140401552-3fab0b24306f?w=500" },
+            { name: "Cheesy Garlic Bread", price: 169, desc: "Stuffed with Mozzarella", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500" },
+            { name: "Stuffed Garlic Bread", price: 199, desc: "Paneer, Corn & Jalapeno", img: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=500" },
+            { name: "Spicy Garlic Bread", price: 179, desc: "Chilli Flakes & Herbs", img: "https://images.unsplash.com/photo-1544681280-d25a782adc9b?w=500" },
+            { name: "Paneer Garlic Bread", price: 189, desc: "Soft Paneer Cubes topping", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500" }
+        ],
+        dessert: [
+            { name: "Classic Choco Lava", price: 99, desc: "Molten chocolate heart", img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500" },
+            { name: "Hazelnut Lava", price: 129, desc: "Nutella infused lava", img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500" },
+            { name: "White Choco Lava", price: 119, desc: "Milky white chocolate", img: "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500" },
+            { name: "Brownie Blast", price: 149, desc: "Fudgy walnut brownie", img: "https://images.unsplash.com/photo-1515037893149-de7f840978e2?w=500" }
+        ],
+        drink: [
+            { name: "Coca Cola", price: 60, desc: "500ml Chilled Bottle", img: "https://images.pexels.com/photos/3819969/pexels-photo-3819969.jpeg?w=500" },
+            { name: "Pepsi", price: 60, desc: "500ml Chilled Bottle", img: "https://images.pexels.com/photos/1292294/pexels-photo-1292294.jpeg?w=500" },
+            { name: "Iced Peach Tea", price: 110, desc: "Brewed fresh with ice", img: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=500" },
+            { name: "Cold Coffee", price: 150, desc: "Creamy hazelnut blend", img: "https://images.unsplash.com/photo-1559496417-e7f25cb247f3?w=500" }
+        ]
+    };
+
+    function filterMenu(category, btn) {
+        const box = document.getElementById('menu-box');
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        box.innerHTML = '';
+        menuData[category].forEach(item => {
+            box.innerHTML += `
+                <div class="card">
+                    <div class="img-wrapper">
+                        <img src="${item.img}" alt="${item.name}">
+                    </div>
+                    <div class="card-body">
+                        <h3>${item.name}</h3>
+                        <p>${item.desc}</p>
+                        <span class="price">₹${item.price}</span>
+                        <div class="btn-group">
+                            <button class="add-btn" onclick="addToCart('${item.name}', ${item.price})">ADD</button>
+                            <button class="cust-btn" onclick="goToCustomize('${item.name}', ${item.price})">CUSTOMIZE</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function addToCart(name, price) {
+        fetch('/add_to_cart', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ name: name, price: price })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('cart-num').innerText = data.count;
+            openModal(name);
+        });
+    }
+
+    function openModal(itemName) {
+        document.getElementById('modalMessage').innerText = `${itemName} has been added to your cart.`;
+        const overlay = document.getElementById('modalOverlay');
+        const modal = document.getElementById('successModal');
+        overlay.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('successModal');
+        const overlay = document.getElementById('modalOverlay');
+        modal.classList.remove('active');
+        setTimeout(() => overlay.style.display = 'none', 300);
+    }
+
+    function goToCustomize(name, price) {
+        window.location.href = `/customize?name=${encodeURIComponent(name)}&price=${price}`;
+    }
+
+    window.onload = () => filterMenu('pizza', document.querySelector('.cat-btn'));
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

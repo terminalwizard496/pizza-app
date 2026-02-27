@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart | CIAO PIZZERIA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #fbc531; --dark: #1a1a1a; --red: #e74c3c; --green: #2ecc71; --white: #ffffff; --gray: #f4f7f6; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: var(--gray); color: var(--dark); }
+
+        /* Navigation */
+        nav { background: var(--dark); padding: 15px 8%; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        nav h1 { font-family: 'Playfair Display'; color: var(--gold); font-size: 1.8rem; }
+        .nav-links a { color: white; text-decoration: none; font-weight: 500; transition: 0.3s; }
+        .nav-links a:hover { color: var(--gold); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; display: grid; grid-template-columns: 1.6fr 1fr; gap: 30px; }
+
+        /* Cards */
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        h2 { font-family: 'Playfair Display'; font-size: 1.8rem; margin-bottom: 20px; border-left: 5px solid var(--gold); padding-left: 15px; }
+
+        /* Order Items */
+        .order-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .item-info h4 { font-weight: 600; font-size: 1.1rem; }
+        
+        .item-extras { font-size: 0.85rem; color: #666; font-style: italic; display: block; margin-top: 4px; }
+
+        .right-side-item { display: flex; align-items: center; gap: 15px; }
+        .item-price { font-weight: 700; color: var(--red); font-size: 1.1rem; }
+        
+        .btn-remove { 
+            background: #fee2e2; color: var(--red); border: none; padding: 6px 12px; 
+            border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; 
+            text-decoration: none; transition: 0.3s;
+        }
+        .btn-remove:hover { background: var(--red); color: white; }
+
+        /* Empty Cart Styling */
+        .empty-cart-msg { text-align: center; padding: 40px 20px; }
+        .empty-cart-msg p { font-size: 1.1rem; color: #777; margin-bottom: 20px; }
+        .add-pizza-btn { background: var(--gold); color: var(--dark); padding: 12px 25px; border-radius: 10px; text-decoration: none; font-weight: 700; transition: 0.3s; }
+
+        /* Address Box */
+        .address-section textarea {
+            width: 100%; padding: 15px; border-radius: 12px; border: 2px solid #eee;
+            margin: 15px 0; outline: none; transition: 0.3s; font-size: 1rem;
+        }
+        .btn-save { background: var(--dark); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+        /* Support info styling added into your existing style block */
+        .support-info { display: flex; justify-content: space-between; margin-top: 25px; padding-top: 20px; border-top: 1px solid #eee; }
+        .info-col h4 { font-size: 0.95rem; margin-bottom: 10px; color: var(--dark); }
+        .info-col p, .info-col li { font-size: 0.85rem; color: #666; list-style: none; margin-bottom: 5px; }
+
+        /* Bill Details */
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.05rem; }
+        .total-row { border-top: 2px dashed #ddd; padding-top: 20px; margin-top: 20px; font-size: 1.5rem; font-weight: 700; color: var(--dark); }
+        .coupon-alert { background: #fff3cd; color: #856404; padding: 12px; border-radius: 10px; font-size: 0.9rem; margin-top: 15px; text-align: center; }
+        .checkout-btn { width: 100%; background: var(--green); color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.2rem; font-weight: 700; cursor: pointer; margin-top: 25px; }
+
+        /* iMap UI */
+        .map-container { height: 280px; border-radius: 15px; overflow: hidden; margin-top: 15px; border: 4px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        /* Modal Overlay */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; 
+            align-items: center; z-index: 3000; 
+        }
+        .modal { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        .preview-box { background: #f9f9f9; padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px dashed #ccc; font-size: 0.9rem; text-align: left; }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .m-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+
+        /* MOBILE FIX: This makes your code adjust automatically to mobile */
+        @media (max-width: 900px) { 
+            .container { grid-template-columns: 1fr; } 
+            .support-info { flex-direction: column; gap: 20px; }
+            nav { padding: 15px 5%; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <h1>CIAO PIZZERIA</h1>
+    <div class="nav-links"><a href="/menu">Back to Menu</a></div>
+</nav>
+
+<div class="container">
+    <div class="left-column">
+        <div class="card">
+            <h2>Order Summary</h2>
+            <div id="cart-content">
+                {% if cart %}
+                    {% for item in cart %}
+                    <div class="order-item">
+                        <div class="item-info">
+                            <h4>{{ item.name }}</h4>
+                            {% if item.toppings %}
+                                <span class="item-extras">Extras: {{ item.toppings | join(', ') }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="right-side-item">
+                            <span class="item-price">₹{{ item.price }}</span>
+                            <a href="/remove_from_cart/{{ loop.index0 }}" class="btn-remove">Remove</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-cart-msg">
+                        <p>🍕 Your cart is feeling empty!</p>
+                        <a href="/menu" class="add-pizza-btn">ADD PIZZA NOW</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card address-section">
+            <h2>Delivery Address</h2>
+            <textarea id="addressInput" placeholder="Flat No, Building, Street, Landmark...">{{ saved_address }}</textarea>
+            <button class="btn-save" onclick="openAddressModal()">Update & Save Address</button>
+            
+            <div class="support-info">
+                <div class="info-col">
+                    <h4>📍 More Branches</h4>
+                    <ul>
+                        <li>Downtown, 5th Avenue</li>
+                        <li>Skyline Mall, Food Court</li>
+                        <li>Westside Plaza, Block B</li>
+                    </ul>
+                </div>
+                <div class="info-col">
+                    <h4>📞 Contact Us</h4>
+                    <p>Gmail: contact@ciaopizza.com</p>
+                    <p>Phone: +91 98765 43210</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-column">
+        <div class="card">
+            <h2>Bill Details</h2>
+            <div class="summary-row"><span>Subtotal</span> <span>₹{{ subtotal }}</span></div>
+            {% if discount > 0 %}<div class="summary-row" style="color:var(--green); font-weight:600;"><span>Discount Applied</span> <span>-₹{{ discount }}</span></div>{% endif %}
+            <div class="summary-row"><span>Taxes (GST 5%)</span> <span>₹{{ gst }}</span></div>
+            <div class="summary-row total-row"><span>Total Payable</span> <span>₹{{ total }}</span></div>
+
+            {% if cart %}
+            <div class="coupon-alert">
+                {% if subtotal < 2000 %} 💡 Add ₹{{ 2000 - subtotal }} more for <strong>10% OFF</strong>!
+                {% elif subtotal < 3000 %} 🎉 10% OFF Applied! Add ₹{{ 3000 - subtotal }} more for <strong>15% OFF</strong>!
+                {% else %} 🏆 Max 15% OFF Applied! {% endif %}
+            </div>
+            <button class="checkout-btn" onclick="placeOrder()">PLACE ORDER NOW</button>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>Our Location</h2>
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.6979213190895!2d72.5020147753141!3d23.0348744791653!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395e848aba5bd449%3A0x4fccd70d68f0446!2sIscon%20Cross%20Road!5e0!3m2!1sen!2sin!4v1700000000000" 
+                        width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+        <h2>Confirm Address?</h2>
+        <p style="font-size: 0.8rem; color: #666; margin-bottom: 10px;">Is this where you want your pizza delivered?</p>
+        <div class="preview-box" id="previewAddress"></div>
+        <div class="modal-btns">
+            <button class="m-btn" onclick="closeModal()" style="background:#eee;">CANCEL</button>
+            <button class="m-btn" onclick="confirmSaveAddress()" style="background:var(--green); color:white;">CONFIRM & SAVE</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let tempAddress = "";
+
+    function openAddressModal() {
+        const addr = document.getElementById('addressInput').value;
+        if (!addr.trim()) {
+            alert("Please enter an address first!");
+            return;
+        }
+        tempAddress = addr;
+        document.getElementById('previewAddress').innerText = addr;
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    function confirmSaveAddress() {
+        fetch('/save_address', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ address: tempAddress })
+        })
+        .then(res => res.json())
+        .then(data => {
+            closeModal();
+            if(data.success) {
+                alert("✅ Address Saved Successfully!");
+            } else {
+                alert("❌ Error saving address.");
+            }
+        });
+    }
+
+    function placeOrder() {
+        const addr = document.getElementById('addressInput').value;
+        if (!addr.trim()) {
+            alert("We need your address to start the delivery!");
+            return;
+        }
+        alert("🍕 Order Received! Our Chef is hand-tossing your pizza right now.");
+        window.location.href = "/menu";
+    }
+</script>
+
+</body>
+</html>
