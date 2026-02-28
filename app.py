@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, session, redirect, u
 import mysql.connector
 import random
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = "pizza_secret_key_123"
@@ -10,13 +11,15 @@ app.secret_key = "pizza_secret_key_123"
 def get_db_connection():
     try:
         return mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="pizza_db"
+            host=os.environ.get("DB_HOST", "localhost"),
+            user=os.environ.get("DB_USER", "root"),
+            password=os.environ.get("DB_PASSWORD", ""),
+            database=os.environ.get("DB_NAME", "pizza_db")
         )
-    except:
+    except Exception as e:
+        print("Database connection failed:", e)
         return None
+
 
 # ---- ROUTES ----
 
@@ -184,4 +187,6 @@ def logout():
 
 if __name__ == '__main__':
     print("--- 🍕 CIAO PIZZERIA IS LIVE ---")
-    app.run(debug=True)
+    port=int(os.environ.get("PORT",10000))
+    app.run(host="0.0.0.0",port=port)
+    # app.run(debug=True)
